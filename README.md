@@ -99,7 +99,8 @@ aplicada a todos automaticamente (poll a cada ~60 min, sem reiniciar):
       "source": {
         "source": "github",
         "repo": "GradusAnalytics/gradus-official-skills"
-      }
+      },
+      "autoUpdate": true
     }
   },
   "enabledPlugins": {
@@ -111,14 +112,18 @@ aplicada a todos automaticamente (poll a cada ~60 min, sem reiniciar):
 Quem preferir/precisar instalar manualmente (ex.: ambiente fora da org
 gerenciada): ver passo 1 em "Comandos para o time" acima.
 
-## ⚠️ Atenção: a atualização de conteúdo NÃO é automática
-O provisionamento acima (marketplace + plugin habilitados) é automático,
-mas isso só garante que o colaborador *tem* o plugin — não que ele está
-*atualizado*. Não existe campo `autoUpdate` documentado nem verificação
-periódica em segundo plano que puxe novos commits deste repo sozinha.
-Sempre que os gestores publicarem um skill novo ou alterarem um
-existente, cada colaborador precisa rodar o passo 2 de "Comandos para o
-time" acima manualmente.
+## ⚠️ Atenção: `autoUpdate` exige um token, pois o repo é privado
+`autoUpdate: true` faz o Claude Code tentar atualizar o marketplace e o
+plugin instalado automaticamente a cada start da sessão — mas **só na
+abertura**, não em segundo plano durante a sessão já aberta. Como este
+repositório é privado, esse auto-update em background **não usa** o
+login do `gh auth login` de cada um; ele só funciona se a variável de
+ambiente `GITHUB_TOKEN` ou `GH_TOKEN` (um personal access token com
+acesso de leitura a este repo) estiver configurada na máquina do
+colaborador. Sem o token, o `autoUpdate` falha silenciosamente e nada
+muda — então, até todo mundo configurar o token, continue avisando o
+time para rodar o passo 2 de "Comandos para o time" manualmente como
+rede de segurança.
 
 ## Por que separar de `~/.claude/skills`
 - Namespace próprio (`/gradus-skills:padrao-relatorio-analytics`), sem
