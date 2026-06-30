@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R$/participante — Embed Gradus</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root{
+    --brand-blue:#296DB7; --dk1:#002060; --dk2:#12376C; --lt2:#9DB1CF;
+    --accent1:#E68E18; --accent2:#306F9F; --accent3:#800000;
+    --g-text:#12376C; --g-text2:#4A5E73; --g-text3:#7B8EA0; --g-border:#D9DCE6; --r:4px;
+    font-size: min(0.8vw, 1.85vh);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;width:100%;margin:0;padding:0;background:transparent;
+    font-family:'Gadugi','Nunito','Calibri','Segoe UI',system-ui,sans-serif;color:var(--g-text)}
+  .embed-root{height:100vh;width:100vw;padding:.6rem .9rem;display:flex;flex-direction:column;gap:.4rem;overflow:hidden}
+  .embed-main{flex:1;min-height:0}
+  .chart-wrap{position:relative;height:100%;width:100%}
+
+  .ctrl-bar{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+  .ctrl-grp{display:flex;gap:.45rem;align-items:center}
+  .ctrl-lbl{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--g-text3)}
+  .seg{display:inline-flex;border:1px solid var(--g-border);border-radius:var(--r);overflow:hidden}
+  .seg button{border:0;background:#fff;color:var(--g-text2);font:inherit;font-size:.95rem;
+    padding:.3rem .7rem;cursor:pointer;font-weight:600;transition:background .15s}
+  .seg button:hover{background:#EAF0F8}
+  .seg button.on{background:var(--dk1);color:#fff}
+  .seg button.on:hover{background:var(--dk1)}
+  .legend{display:flex;gap:.8rem;align-items:center;font-size:.9rem;color:var(--g-text2)}
+  .lz{display:inline-flex;align-items:center;gap:.3rem}
+  .sw{width:.8rem;height:.8rem;border-radius:2px;display:inline-block}
+  .ln{width:1rem;height:0;border-top:2px dashed var(--accent3);display:inline-block}
+  .spacer{flex:1}
+  .badge{display:inline-flex;align-items:center;gap:.45rem;background:var(--accent3);color:#fff;
+    font-weight:700;font-size:1.5rem;padding:.5rem 1.2rem;border-radius:999px;white-space:nowrap;
+    box-shadow:0 3px 10px rgba(128,0,0,.3)}
+</style>
+</head>
+<body>
+<div class="embed-root">
+  <div class="ctrl-bar">
+    <div class="ctrl-grp">
+      <span class="ctrl-lbl">Ordenar</span>
+      <div class="seg" id="seg-sort">
+        <button class="on" data-v="rs">R$/participante</button>
+        <button data-v="valor">Valor (R$ mil)</button>
+      </div>
+    </div>
+    <div class="ctrl-grp">
+      <span class="ctrl-lbl">Escala</span>
+      <div class="seg" id="seg-scale">
+        <button class="on" data-v="linear">Linear</button>
+        <button data-v="log">Log</button>
+      </div>
+    </div>
+    <div class="ctrl-grp">
+      <span class="ctrl-lbl">Mediana</span>
+      <div class="seg" id="seg-med">
+        <button class="on" data-v="on">Destacar</button>
+        <button data-v="off">Ocultar</button>
+      </div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="spacer"></div>
+    <span class="badge">Oportunidade: R$ 606 mil/ano</span>
+  </div>
+
+  <div class="embed-main">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+  </div>
+</div>
+
+<script>
+/* ===== DADOS EMBARCADOS — slide MAG001-DO_Benefícios (eventos externos, evento fechado) ===== */
+const EMBED_DATA = {
+  evento: ['Coffee Mulheres de Negócio','Cloud & CarBigData','Live Influenciador','Jornada Galapágos',
+           'Adidas na Galeria','Fred na Galeria Magalu','Cloud Summit de Líderes','BTG Galeria Magalu',
+           'Estante Virtual','Live Infl. Magalu','Infl. Estante Virtual','Infl. Magalu',
+           'Acelera','CloudFuture','Conselho de Sellers'],
+  rs:       [41,63,88,118,265,301,337,359,418,475,479,613,807,1535,4578],
+  valorMil: [0.5,3.1,1.0,5.3,7.9,6.0,12.1,18.0,12.5,14.2,9.6,153.3,200.0,537.3,100.0],
+  part:     [50,11,45,30,20,36,50,30,30,20,250,160,350,10,null],
+  mediana:  348   // conforme anotação do slide-fonte
+};
+
+/* ===== paleta Gradus (monocromático azul + mediana bordô) ===== */
+const BAR        = '#306F9F';  // azul de série de dados Gradus (accent2)
+const BAR_MUTED  = '#9DB1CF';  // lt2 — barras acima da mediana (de-ênfase)
+const MED_COLOR  = '#800000';  // bordô — linha de mediana (accent3)
+
+const CHARTS={};
+const fmt=v=>Number(v).toLocaleString('pt-BR');
+let STATE={sort:'rs',scale:'linear',med:'on'};
+
+/* linha de mediana horizontal (barras verticais => eixo y) */
+const refLine={
+  id:'refLine',
+  afterDraw(chart,_a,opts){
+    if(opts.value==null||!opts.show) return;
+    const {ctx,chartArea:{left,right},scales}=chart;
+    const y=scales.y.getPixelForValue(opts.value);
+    if(!isFinite(y)) return;
+    ctx.save();
+    ctx.strokeStyle=MED_COLOR;ctx.lineWidth=1.6;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();
+    ctx.setLineDash([]);ctx.fillStyle=MED_COLOR;ctx.font="700 10px Gadugi, Nunito, sans-serif";
+    ctx.fillText(`Mediana ${fmt(opts.value)}`,left+5,y-4);
+    ctx.restore();
+  }
+};
+Chart.register(refLine);
+Chart.defaults.font.family = "Gadugi, Nunito, Calibri, sans-serif";   // todo texto do Chart.js em Gadugi
+
+function renderLegend(){
+  const showMuted = STATE.med==='on';
+  document.getElementById('legend').innerHTML =
+    `<span class="lz"><span class="sw" style="background:${BAR}"></span>${showMuted?'Abaixo da mediana (mais eficiente)':'R$/participante'}</span>`+
+    (showMuted?`<span class="lz"><span class="sw" style="background:${BAR_MUTED}"></span>Acima da mediana</span>`:'')+
+    `<span class="lz"><span class="ln"></span>Mediana</span>`;
+}
+
+function sortedIdx(){
+  const idx=EMBED_DATA.evento.map((_,i)=>i);
+  if(STATE.sort==='rs') idx.sort((a,b)=>EMBED_DATA.rs[a]-EMBED_DATA.rs[b]);   // asc: mais eficiente à esquerda (padrão do slide)
+  else idx.sort((a,b)=>EMBED_DATA.valorMil[b]-EMBED_DATA.valorMil[a]);
+  return idx;
+}
+
+function render(){
+  const idx=sortedIdx();
+  const labels=idx.map(i=>EMBED_DATA.evento[i]);
+  const rs=idx.map(i=>EMBED_DATA.rs[i]);
+  const med=EMBED_DATA.mediana;
+  const colors=rs.map(v=> (STATE.med==='on' && v>=med) ? BAR_MUTED : BAR );
+
+  if(CHARTS.chart) CHARTS.chart.destroy();
+  CHARTS.chart=new Chart(document.getElementById('chart'),{
+    type:'bar',
+    data:{labels,datasets:[{data:rs,backgroundColor:colors,borderRadius:2,
+      barPercentage:.86,categoryPercentage:.92,maxBarThickness:46}]},
+    options:{
+      indexAxis:'x',                       // barras VERTICAIS (padrão Gradus: barDir=col)
+      responsive:true,maintainAspectRatio:false,animation:{duration:450},
+      layout:{padding:{top:16}},
+      scales:{
+        y:{type:STATE.scale==='log'?'logarithmic':'linear',
+           grid:{color:'rgba(0,32,96,.06)',drawTicks:false},border:{display:false},
+           ticks:{color:'#7B8EA0',font:{size:9},callback:v=>fmt(v)},
+           title:{display:true,text:'R$ / participante',color:'#7B8EA0',font:{size:9,weight:'700'}}},
+        x:{grid:{display:false},border:{display:false},
+           ticks:{color:'#12376C',font:{size:8.5},autoSkip:false,maxRotation:90,minRotation:90}}
+      },
+      plugins:{
+        legend:{display:false},
+        refLine:{value:med,show:STATE.med==='on'},
+        tooltip:{
+          backgroundColor:'#002060',titleColor:'#fff',bodyColor:'#dde6f2',
+          padding:8,cornerRadius:4,titleFont:{size:11,weight:'700'},bodyFont:{size:11},
+          callbacks:{
+            label:ctx=>{ const i=idx[ctx.dataIndex];
+              const p=EMBED_DATA.part[i]; const pTxt=(p==null)?'n/d':fmt(p);
+              return [`R$/participante: R$ ${fmt(EMBED_DATA.rs[i])}`,
+                      `Valor: R$ ${fmt(EMBED_DATA.valorMil[i])} mil`,
+                      `Participantes: ${pTxt}`];
+            }
+          }
+        }
+      },
+      onHover:(e,els)=>{ e.native.target.style.cursor=els.length?'pointer':'default'; }
+    },
+    plugins:[{
+      id:'valLabels',                       // rótulo do valor acima de cada barra (como no slide)
+      afterDatasetsDraw(chart){
+        const {ctx}=chart, meta=chart.getDatasetMeta(0);
+        ctx.save();ctx.font="700 8.5px Gadugi, Nunito, sans-serif";ctx.fillStyle='#12376C';
+        ctx.textAlign='center';ctx.textBaseline='bottom';
+        meta.data.forEach((bar,n)=>{ ctx.fillText(fmt(rs[n]), bar.x, bar.y-2); });
+        ctx.restore();
+      }
+    }]
+  });
+  renderLegend();
+}
+
+function wire(segId,key){
+  document.querySelectorAll('#'+segId+' button').forEach(b=>{
+    b.onclick=()=>{ STATE[key]=b.dataset.v;
+      document.querySelectorAll('#'+segId+' button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on'); render(); };
+  });
+}
+wire('seg-sort','sort'); wire('seg-scale','scale'); wire('seg-med','med');
+render();
+</script>
+</body>
+</html>

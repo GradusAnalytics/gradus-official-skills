@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gradus Embed</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  /* ===== Tokens Gradus (ver references/embed-tokens.md) ===== */
+  :root{
+    --brand-blue:#296DB7; --dk1:#002060; --dk2:#12376C; --lt2:#9DB1CF;
+    --accent1:#E68E18; --accent2:#306F9F; --accent3:#800000; --green-ok:#00B050;
+    --g-text-dark:#002060; --g-text:#12376C; --g-text2:#4A5E73; --g-text3:#7B8EA0;
+    --g-border:#D9DCE6; --g-surface:#FFFFFF; --r:4px;
+    /* tipografia fluida: ~10px no baseline 1240x540; min() = bounded pelo lado restritivo */
+    font-size: min(0.8vw, 1.85vh);
+  }
+  *{box-sizing:border-box}
+  /* fundo TRANSPARENTE — a peça senta sobre o slide */
+  html,body{height:100%;width:100%;margin:0;padding:0;background:transparent;
+    font-family:'Gadugi','Nunito','Calibri','Segoe UI',system-ui,sans-serif;color:var(--g-text)}
+  .embed-root{height:100vh;width:100vw;padding:.6rem .8rem;display:flex;flex-direction:column;
+    gap:.4rem;overflow:hidden}                 /* PROIBIDO scroll */
+  .embed-main{flex:1;min-height:0}             /* min-height:0 deixa o canvas encolher */
+  .chart-wrap{position:relative;height:100%;width:100%}
+
+  /* barra de controles fina */
+  .ctrl-bar{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap}
+  .ctrl-lbl{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--g-text3)}
+  .seg{display:inline-flex;border:1px solid var(--g-border);border-radius:var(--r);overflow:hidden}
+  .seg button{border:0;background:#fff;color:var(--g-text2);font:inherit;font-size:.95rem;
+    padding:.3rem .7rem;cursor:pointer;font-weight:600}
+  .seg button.on{background:var(--dk1);color:#fff}
+  .spacer{flex:1}
+  .badge{background:var(--accent3);color:#fff;font-weight:700;font-size:1.5rem;
+    padding:.5rem 1.2rem;border-radius:999px;white-space:nowrap;box-shadow:0 3px 10px rgba(128,0,0,.3)}
+</style>
+</head>
+<body>
+<div class="embed-root">
+  <!-- CONTROLES (interação que justifica o embed) -->
+  <div class="ctrl-bar">
+    <span class="ctrl-lbl">Controle</span>
+    <div class="seg" id="seg-exemplo">
+      <button class="on" data-v="a">Opção A</button>
+      <button data-v="b">Opção B</button>
+    </div>
+    <div class="spacer"></div>
+    <!-- leitura/insight curto ou badge de oportunidade à direita (NÃO é título do slide) -->
+    <span class="badge" id="badge"></span>
+  </div>
+
+  <!-- CONTEÚDO: escolha 1 dos 4 arquétipos de layout-patterns.md -->
+  <div class="embed-main">
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+  </div>
+</div>
+
+<script>
+/* ===== DADOS EMBARCADOS (sem upload/simulado — apresentação tem dados fechados) ===== */
+const EMBED_DATA = {
+  // cole aqui o JSON do exhibit
+};
+
+const CHARTS = {};
+const fmt = v => Number(v).toLocaleString('pt-BR');
+
+function newChart(id,type,data,opts){
+  const el=document.getElementById(id); if(!el) return;
+  if(CHARTS[id]) CHARTS[id].destroy();
+  CHARTS[id]=new Chart(el,{type,data,options:{
+    responsive:true,maintainAspectRatio:false,animation:{duration:400},
+    plugins:{legend:{display:false}}, ...opts
+  }});
+  return CHARTS[id];
+}
+const GRID={grid:{color:'rgba(0,32,96,.06)',drawTicks:false},border:{display:false},
+  ticks:{color:'#4A5E73',font:{size:9}}};
+
+/* linha de referência (mediana etc.) — axis:'x' vertical | 'y' horizontal */
+const refLine = {
+  id:'refLine',
+  afterDraw(chart,_a,opts){
+    if(opts.value==null) return;
+    const {ctx,chartArea:{left,right,top,bottom},scales}=chart;
+    ctx.save(); ctx.strokeStyle=opts.color||'#800000'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+    ctx.beginPath();
+    if((opts.axis||'y')==='x'){ const x=scales.x.getPixelForValue(opts.value);
+      ctx.moveTo(x,top);ctx.lineTo(x,bottom);ctx.stroke();
+      ctx.fillStyle=opts.color||'#800000';ctx.font="700 9px Gadugi, Nunito, sans-serif";ctx.setLineDash([]);
+      ctx.fillText(`${opts.label||''} ${fmt(opts.value)}`,x+4,top+10);
+    } else { const y=scales.y.getPixelForValue(opts.value);
+      ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();
+      ctx.fillStyle=opts.color||'#800000';ctx.font="700 9px Gadugi, Nunito, sans-serif";ctx.setLineDash([]);
+      ctx.fillText(`${opts.label||''} ${fmt(opts.value)}`,left+4,y-3);
+    }
+    ctx.restore();
+  }
+};
+Chart.register(refLine);
+Chart.defaults.font.family = "Gadugi, Nunito, Calibri, sans-serif"; // todo texto do Chart.js em Gadugi
+
+/* ===== render ===== */
+function render(){ /* monte o gráfico a partir de EMBED_DATA */ }
+render();
+</script>
+</body>
+</html>
