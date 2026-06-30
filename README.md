@@ -1,7 +1,10 @@
 # Gradus Skills Marketplace
 
-Repositório de skills curados pelos gestores da Gradus Consultoria para uso
-com o Claude Code. Skills pessoais de cada colaborador continuam em
+Repositório para armazenamento e atualização das Skills oficiais do
+ambiente organizacional da Gradus.
+
+Skills curados pelos gestores da Gradus Consultoria para uso com o
+Claude Code. Skills pessoais de cada colaborador continuam em
 `~/.claude/skills` — este repositório NÃO substitui isso, ele é uma fonte
 adicional e separada, mantida pela organização.
 
@@ -34,7 +37,7 @@ gradus-skills-marketplace/
 ## Para os colaboradores (instalação, uma vez)
 
 ```
-/plugin marketplace add SUA-ORG/gradus-skills-marketplace
+/plugin marketplace add GradusAnalytics/gradus-official-skills
 /plugin install gradus-skills@gradus-skills-marketplace
 ```
 
@@ -55,7 +58,7 @@ time/repo):
     "gradus-skills-marketplace": {
       "source": {
         "source": "github",
-        "repo": "SUA-ORG/gradus-skills-marketplace"
+        "repo": "GradusAnalytics/gradus-official-skills"
       }
     }
   },
