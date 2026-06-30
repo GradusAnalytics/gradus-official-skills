@@ -1,6 +1,19 @@
 ---
 name: gradus-consultant-pptx-embed
-description: Cria ferramentas/visualizações HTML interativas da Gradus no formato CERTO para serem EMBUTIDAS dentro de um slide PowerPoint via o add-on da Gradus. Difere da skill gradus-consultant-frontend: aqui o produto NÃO é uma aplicação com chrome próprio (AppBar, logo, footer, upload), e sim uma PEÇA autocontida que ocupa apenas a região de conteúdo do slide — sem título, sem fonte, sem scroll, fluida e proporção ultrawide (~2,3:1). Use esta skill SEMPRE que o consultor disser "embutir no PPT", "embedar no PowerPoint", "html pro slide", "gráfico interativo pro slide", "versão pra apresentação", "pro add-on", ou quiser transformar um exhibit/gráfico de slide em algo interativo dentro do próprio PowerPoint. Para ferramentas standalone (abre no navegador, cliente usa, faz upload) use gradus-consultant-frontend; para algo que vive DENTRO de um slide, use esta.
+description: >-
+  Cria ferramentas/visualizações HTML interativas da Gradus no formato CERTO
+  para serem EMBUTIDAS dentro de um slide PowerPoint via o add-on da Gradus.
+  Difere da skill gradus-consultant-frontend: aqui o produto NÃO é uma
+  aplicação com chrome próprio (AppBar, logo, footer, upload), e sim uma
+  PEÇA autocontida que ocupa apenas a região de conteúdo do slide — sem
+  título, sem fonte, sem scroll, fluida e proporção ultrawide (~2,3:1). Use
+  esta skill SEMPRE que o consultor disser "embutir no PPT", "embedar no
+  PowerPoint", "html pro slide", "gráfico interativo pro slide", "versão pra
+  apresentação", "pro add-on", ou quiser transformar um exhibit/gráfico de
+  slide em algo interativo dentro do próprio PowerPoint. Para ferramentas
+  standalone (abre no navegador, cliente usa, faz upload) use
+  gradus-consultant-frontend; para algo que vive DENTRO de um slide, use
+  esta.
 ---
 
 # Gradus Consultant — PPTX Embed
