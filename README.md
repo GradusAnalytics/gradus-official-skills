@@ -72,7 +72,9 @@ gradus-skills-marketplace/
 ```
 
 ## Para os gestores (manutenção)
-- Publique este repositório no GitHub corporativo (privado).
+- Repositório público no GitHub (`GradusAnalytics/gradus-official-skills`)
+  — qualquer pessoa pode ler o conteúdo dos `SKILL.md`. Se algum skill
+  novo tiver dado/template sensível, avalie antes de publicar.
 - Novos skills curados: ver `plugins/gradus-skills/README.md`.
 - Pode haver mais de um plugin dentro de `plugins/` se quiser separar por
   área (ex.: `gradus-skills-analytics`, `gradus-skills-financeiro`) — basta
@@ -80,10 +82,11 @@ gradus-skills-marketplace/
 - Para travar quais marketplaces os colaboradores podem usar, configurem
   `strictKnownMarketplaces` nas managed settings da organização.
 - **Toda vez que um skill novo for publicado (push/merge neste repo),
-  avise o time** (ex.: canal interno) para rodarem o update — ver
-  "Atenção: a atualização de conteúdo NÃO é automática" abaixo. Não há
-  hoje um mecanismo documentado que faça o Claude Code repuxar o
-  conteúdo do repositório sozinho.
+  avise o time** (ex.: canal interno) — com `autoUpdate` ligado, quem
+  abrir uma sessão nova do Claude Code já recebe a atualização sozinho;
+  quem já estiver com sessão aberta precisa rodar o passo 2 de
+  "Comandos para o time" manualmente. Ver detalhes na seção sobre
+  `autoUpdate` abaixo.
 
 ## Provisionamento automático (já configurado via admin console — Team plan)
 A Gradus usa o plano Team, então o marketplace e o plugin já foram
@@ -112,18 +115,16 @@ aplicada a todos automaticamente (poll a cada ~60 min, sem reiniciar):
 Quem preferir/precisar instalar manualmente (ex.: ambiente fora da org
 gerenciada): ver passo 1 em "Comandos para o time" acima.
 
-## ⚠️ Atenção: `autoUpdate` exige um token, pois o repo é privado
-`autoUpdate: true` faz o Claude Code tentar atualizar o marketplace e o
-plugin instalado automaticamente a cada start da sessão — mas **só na
-abertura**, não em segundo plano durante a sessão já aberta. Como este
-repositório é privado, esse auto-update em background **não usa** o
-login do `gh auth login` de cada um; ele só funciona se a variável de
-ambiente `GITHUB_TOKEN` ou `GH_TOKEN` (um personal access token com
-acesso de leitura a este repo) estiver configurada na máquina do
-colaborador. Sem o token, o `autoUpdate` falha silenciosamente e nada
-muda — então, até todo mundo configurar o token, continue avisando o
-time para rodar o passo 2 de "Comandos para o time" manualmente como
-rede de segurança.
+## ⚠️ Atenção: o que o `autoUpdate` cobre (e o que não cobre)
+Como o repositório é **público**, o `autoUpdate: true` funciona sem
+precisar de nenhum token (`GITHUB_TOKEN`/`GH_TOKEN`) — isso só seria
+necessário se o repo fosse privado. Com `autoUpdate`, o Claude Code
+atualiza o marketplace e o plugin instalado automaticamente, mas
+**apenas na abertura da sessão** (não há verificação periódica em
+segundo plano enquanto a sessão já está aberta). Então, quem abrir o
+Claude Code depois de um skill novo ser publicado já recebe atualizado;
+quem já estiver com uma sessão aberta só recebe na próxima vez que
+abrir, ou rodando manualmente o passo 2 de "Comandos para o time".
 
 ## Por que separar de `~/.claude/skills`
 - Namespace próprio (`/gradus-skills:padrao-relatorio-analytics`), sem
