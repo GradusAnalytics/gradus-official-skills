@@ -8,6 +8,50 @@ Claude Code. Skills pessoais de cada colaborador continuam em
 `~/.claude/skills` — este repositório NÃO substitui isso, ele é uma fonte
 adicional e separada, mantida pela organização.
 
+## Comandos para o time (Claude Code)
+
+Resumo de tudo que é preciso rodar, do zero até usar um skill.
+
+### 1. Instalação inicial — só se você NÃO recebeu via admin console
+A Gradus está no plano Team com o marketplace já provisionado
+centralmente (ver seção abaixo), então a maioria não precisa disso. Se
+mesmo assim o marketplace não aparecer em `/plugin marketplace list`,
+rode:
+
+```
+/plugin marketplace add GradusAnalytics/gradus-official-skills
+/plugin install gradus-skills@gradus-skills-marketplace
+```
+
+### 2. Atualizar quando sai skill novo ou corrigido
+Não é automático (ver aviso mais abaixo) — sempre que os gestores
+avisarem que publicaram algo novo no repo, rode os dois comandos, nessa
+ordem:
+
+```
+/plugin marketplace update gradus-skills-marketplace
+/plugin update gradus-skills@gradus-skills-marketplace
+```
+
+### 3. Usar um skill
+Skills viram slash command automaticamente. Para acionar direto:
+
+```
+/gradus-skills:gradus-consultant-pptx-embed
+/gradus-skills:padrao-relatorio-analytics
+```
+
+Ou simplesmente peça o que precisa em linguagem natural — o Claude aciona
+o skill certo sozinho quando o pedido casa com a descrição dele.
+
+### 4. Checar o que está instalado (diagnóstico)
+```
+/plugin list
+/plugin marketplace list
+```
+Ou, fora do modo interativo: `claude plugin list` e
+`claude plugin details gradus-skills@gradus-skills-marketplace`.
+
 ## Estrutura
 
 ```
@@ -17,10 +61,12 @@ gradus-skills-marketplace/
 ├── plugins/
 │   └── gradus-skills/
 │       ├── .claude-plugin/
-│       │   └── plugin.json     # metadados do plugin (versão, autor)
+│       │   └── plugin.json     # metadados do plugin (autor; sem version fixo)
 │       ├── skills/
-│       │   └── padrao-relatorio-analytics/
-│       │       └── SKILL.md    # EXEMPLO — trocar pelo skill real
+│       │   ├── padrao-relatorio-analytics/
+│       │   │   └── SKILL.md    # EXEMPLO — trocar pelo skill real
+│       │   └── gradus-consultant-pptx-embed/
+│       │       └── SKILL.md
 │       └── README.md
 └── README.md
 ```
@@ -62,30 +108,21 @@ aplicada a todos automaticamente (poll a cada ~60 min, sem reiniciar):
 }
 ```
 
-Quem preferir instalar manualmente (ex.: ambiente fora da org gerenciada)
-pode rodar:
-
-```
-/plugin marketplace add GradusAnalytics/gradus-official-skills
-/plugin install gradus-skills@gradus-skills-marketplace
-```
+Quem preferir/precisar instalar manualmente (ex.: ambiente fora da org
+gerenciada): ver passo 1 em "Comandos para o time" acima.
 
 ## ⚠️ Atenção: a atualização de conteúdo NÃO é automática
 O provisionamento acima (marketplace + plugin habilitados) é automático,
 mas isso só garante que o colaborador *tem* o plugin — não que ele está
 *atualizado*. Não existe campo `autoUpdate` documentado nem verificação
 periódica em segundo plano que puxe novos commits deste repo sozinha.
-
 Sempre que os gestores publicarem um skill novo ou alterarem um
-existente, cada colaborador precisa rodar manualmente:
-
-```
-/plugin marketplace update gradus-skills-marketplace
-```
+existente, cada colaborador precisa rodar o passo 2 de "Comandos para o
+time" acima manualmente.
 
 ## Por que separar de `~/.claude/skills`
-- Namespace próprio (`gradus-skills:padrao-relatorio-analytics`), sem risco
-  de colidir com nomes de skills pessoais.
+- Namespace próprio (`/gradus-skills:padrao-relatorio-analytics`), sem
+  risco de colidir com nomes de skills pessoais.
 - Provisionamento centralizado via admin console (gestores publicam,
   todo colaborador já nasce com o plugin habilitado).
 - Skills pessoais continuam livres, em `~/.claude/skills`, sem curadoria.
