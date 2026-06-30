@@ -1,0 +1,20 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "gradus-skills-marketplace",
+  "description": "Skills curados pela Gradus Consultoria para uso com Claude Code",
+  "owner": {
+    "name": "Gradus Consultoria",
+    "email": "analytics@gradusconsultoria.com.br"
+  },
+  "plugins": [
+    {
+      "name": "gradus-skills",
+      "description": "Conjunto de skills oficiais e curados da Gradus: padrões de análise, relatórios e processos internos validados pelos gestores.",
+      "author": {
+        "name": "Gradus Consultoria"
+      },
+      "category": "productivity",
+      "source": "./plugins/gradus-skills"
+    }
+  ]
+}
