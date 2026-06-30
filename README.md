@@ -33,24 +33,18 @@ gradus-skills-marketplace/
   adicionar uma nova entrada em `.claude-plugin/marketplace.json`.
 - Para travar quais marketplaces os colaboradores podem usar, configurem
   `strictKnownMarketplaces` nas managed settings da organização.
+- **Toda vez que um skill novo for publicado (push/merge neste repo),
+  avise o time** (ex.: canal interno) para rodarem o update — ver
+  "Atenção: a atualização de conteúdo NÃO é automática" abaixo. Não há
+  hoje um mecanismo documentado que faça o Claude Code repuxar o
+  conteúdo do repositório sozinho.
 
-## Para os colaboradores (instalação, uma vez)
-
-```
-/plugin marketplace add GradusAnalytics/gradus-official-skills
-/plugin install gradus-skills@gradus-skills-marketplace
-```
-
-Atualizar quando os gestores publicarem novidades:
-
-```
-/plugin marketplace update gradus-skills-marketplace
-```
-
-### Instalação automática (recomendado para todos da empresa)
-Para não depender de cada pessoa rodar o comando manualmente, adicione ao
-`~/.claude/settings.json` (ou ao settings.json do projeto, se for por
-time/repo):
+## Provisionamento automático (já configurado via admin console — Team plan)
+A Gradus usa o plano Team, então o marketplace e o plugin já foram
+habilitados centralmente em `claude.ai/admin-settings/claude-code`
+(Managed settings) com o JSON abaixo — nenhum colaborador precisa rodar
+`/plugin marketplace add` nem `/plugin install` manualmente; a config é
+aplicada a todos automaticamente (poll a cada ~60 min, sem reiniciar):
 
 ```json
 {
@@ -68,12 +62,30 @@ time/repo):
 }
 ```
 
-Com isso, o plugin é resolvido e habilitado automaticamente, sem o usuário
-precisar rodar `/plugin marketplace add` nem `/plugin install`.
+Quem preferir instalar manualmente (ex.: ambiente fora da org gerenciada)
+pode rodar:
+
+```
+/plugin marketplace add GradusAnalytics/gradus-official-skills
+/plugin install gradus-skills@gradus-skills-marketplace
+```
+
+## ⚠️ Atenção: a atualização de conteúdo NÃO é automática
+O provisionamento acima (marketplace + plugin habilitados) é automático,
+mas isso só garante que o colaborador *tem* o plugin — não que ele está
+*atualizado*. Não existe campo `autoUpdate` documentado nem verificação
+periódica em segundo plano que puxe novos commits deste repo sozinha.
+
+Sempre que os gestores publicarem um skill novo ou alterarem um
+existente, cada colaborador precisa rodar manualmente:
+
+```
+/plugin marketplace update gradus-skills-marketplace
+```
 
 ## Por que separar de `~/.claude/skills`
 - Namespace próprio (`gradus-skills:padrao-relatorio-analytics`), sem risco
   de colidir com nomes de skills pessoais.
-- Atualização centralizada: gestores publicam, colaboradores só rodam
-  `update` (ou nem isso, com `enabledPlugins`).
+- Provisionamento centralizado via admin console (gestores publicam,
+  todo colaborador já nasce com o plugin habilitado).
 - Skills pessoais continuam livres, em `~/.claude/skills`, sem curadoria.
