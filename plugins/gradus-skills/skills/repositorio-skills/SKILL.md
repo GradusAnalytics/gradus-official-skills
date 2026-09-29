@@ -32,6 +32,28 @@ Teste a configuração (deve devolver nome, e-mail e se a pessoa é admin):
 curl -s -H "Authorization: Token $PPR_TOKEN" https://ppr.gradusanalytics.com.br/api/skills/eu/
 ```
 
+### Codificação: sempre UTF-8
+
+Fichas, notas e motivos têm acento (ç, ã, é). No Windows, o terminal (PowerShell, cmd e às
+vezes o Git Bash) usa outra codificação (cp1252/cp850) e **corrompe os acentos** quando o
+texto vai direto no comando: "Avaliação" vira "AvaliaÃ§Ã£o" ou "Avalia??o". Para evitar:
+
+- **Nunca** ponha JSON com texto no próprio comando (`-F 'ficha={...}'`, `-d '{...}'`). Grave
+  num arquivo **UTF-8 sem BOM** e envie o arquivo: `-F "ficha=<ficha.json"` (multipart) ou
+  `--data-binary @motivo.json` com `-H "Content-Type: application/json; charset=utf-8"`.
+- Crie esses arquivos com Python, que controla a codificação:
+  `open("ficha.json", "w", encoding="utf-8").write(json.dumps(ficha, ensure_ascii=False))`.
+  No PowerShell, não use `Out-File`/`Set-Content` sem `-Encoding utf8` (o 5.1 grava UTF-16
+  ou ANSI por padrão).
+- Rode Python com `PYTHONUTF8=1` (ou `python -X utf8`) e, para imprimir, use
+  `sys.stdout.reconfigure(encoding="utf-8")`. Leia respostas e arquivos com `encoding="utf-8"`.
+- Heredoc do bash no Windows também pode corromper acentos: prefira gravar scripts e textos
+  com a ferramenta de escrever arquivos e rodá-los a partir do arquivo.
+- Os arquivos da skill (`SKILL.md`, `references/`, scripts) também em UTF-8.
+- O que aparece torto no terminal pode estar certo no arquivo: confira lendo o arquivo em
+  UTF-8 antes de concluir que o texto está errado.
+- Se a API responder que o texto "não está em UTF-8", regrave o arquivo em UTF-8 e reenvie.
+
 ## 2. Endpoints
 
 Todas as chamadas levam o cabeçalho `Authorization: Token $PPR_TOKEN`. Respostas em JSON
@@ -128,11 +150,16 @@ enviá-lo em *Configurações → Recursos → Skills*.
    PY
    ```
 4. Revise com a pessoa se o pacote não tem dado de cliente, senha, token ou arquivo pessoal.
-5. Envie (mostre a ficha e peça confirmação antes):
+5. Grave a ficha em UTF-8 e envie (mostre a ficha e peça confirmação antes):
    ```bash
+   PYTHONUTF8=1 python - <<'PY'
+   import json
+   ficha = {"nome": "...", "categoria": "produtividade", "escopo": "...", "metodologia": "OM",
+            "formato": "Skill", "estagio": "Em avaliação"}
+   open("/tmp/ficha.json", "w", encoding="utf-8").write(json.dumps(ficha, ensure_ascii=False))
+   PY
    curl -s -H "Authorization: Token $PPR_TOKEN" https://ppr.gradusanalytics.com.br/api/skills/ \
-     -F 'ficha={"nome":"...","categoria":"produtividade","escopo":"...","metodologia":"OM","formato":"Skill","estagio":"Em avaliação"}' \
-     -F "pacote=@/tmp/pacote.zip"
+     -F "ficha=</tmp/ficha.json" -F "pacote=@/tmp/pacote.zip"
    ```
 6. Resultado: a skill entra **publicada como v1** e já aparece e fica instalável para todos
    (como no botão "Publicar skill" da tela). Aprovação só vale para as versões seguintes.
@@ -143,12 +170,13 @@ ficha; o pacote é opcional.
 ### Propor uma nova versão
 
 ```bash
+# notas.txt (o que mudou) e, se mudar campos, ficha.json: gravados em UTF-8 (seção 1)
 curl -s -H "Authorization: Token $PPR_TOKEN" https://ppr.gradusanalytics.com.br/api/skills/<id>/versoes/ \
-  -F "notas=O que mudou nesta versão" -F "pacote=@/tmp/pacote.zip"
+  -F "notas=</tmp/notas.txt" -F "pacote=@/tmp/pacote.zip"
 ```
 
 - Toda versão leva o pacote completo (a pasta inteira de novo), com o mesmo `name` no
-  `SKILL.md`. Para mudar campos da ficha, envie também `-F 'ficha={"escopo":"..."}'` só
+  `SKILL.md`. Para mudar campos da ficha, envie também `-F "ficha=</tmp/ficha.json"`, só
   com o que muda.
 - Quem aprova: o **owner** da skill (quem subiu a última versão aprovada); em skill `ORG`,
   também o **admin**. Se a pessoa é o owner (e a skill não é ORG) ou é admin, publica na hora.
@@ -163,8 +191,9 @@ curl -s -H "Authorization: Token $PPR_TOKEN" https://ppr.gradusanalytics.com.br/
 3. Com a decisão **explícita** da pessoa:
    ```bash
    curl -s -X POST -H "Authorization: Token $PPR_TOKEN" https://ppr.gradusanalytics.com.br/api/skills/<id>/aprovar/
-   curl -s -X POST -H "Authorization: Token $PPR_TOKEN" -H "Content-Type: application/json" \
-     https://ppr.gradusanalytics.com.br/api/skills/<id>/recusar/ -d '{"motivo":"o que precisa corrigir"}'
+   # motivo.json = {"motivo": "o que precisa corrigir"}, gravado em UTF-8 (seção 1)
+   curl -s -X POST -H "Authorization: Token $PPR_TOKEN" -H "Content-Type: application/json; charset=utf-8" \
+     https://ppr.gradusanalytics.com.br/api/skills/<id>/recusar/ --data-binary @/tmp/motivo.json
    ```
 
 ## 4. Valores aceitos na ficha
