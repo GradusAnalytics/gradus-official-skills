@@ -134,8 +134,8 @@ enviá-lo em *Configurações → Recursos → Skills*.
      -F 'ficha={"nome":"...","categoria":"produtividade","escopo":"...","metodologia":"OM","formato":"Skill","estagio":"Em avaliação"}' \
      -F "pacote=@/tmp/pacote.zip"
    ```
-6. Resultado: se a pessoa não é admin, a skill entra **pendente** e só aparece para todos
-   depois que a Gestão Metodológica aprovar. Admin publica direto como v1.
+6. Resultado: a skill entra **publicada como v1** e já aparece e fica instalável para todos
+   (como no botão "Publicar skill" da tela). Aprovação só vale para as versões seguintes.
 
 Skill da internet (fonte `EXT`): envie `"fonte":"ext"` e `"repositorio":"https://..."` na
 ficha; o pacote é opcional.
